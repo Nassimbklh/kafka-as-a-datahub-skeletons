@@ -2,6 +2,11 @@
 <project version="4">
   <component name="RemoteRepositoriesConfiguration">
     <remote-repository>
+      <option name="id" value="Akka" />
+      <option name="name" value="Akka" />
+      <option name="url" value="https://repo.akka.io/maven" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="central" />
       <option name="name" value="Central Repository" />
       <option name="url" value="https://repo.maven.apache.org/maven2" />
@@ -25,6 +30,11 @@
       <option name="id" value="prod" />
       <option name="name" value="ecare-core-maven-prod" />
       <option name="url" value="https://artifactory.tools.digital.engie.com/artifactory/ecare-core-maven-prod" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="akka" />
+      <option name="name" value="akka" />
+      <option name="url" value="https://repo.akka.io/maven" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="confluent" />

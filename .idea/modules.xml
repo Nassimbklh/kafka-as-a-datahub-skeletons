@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/kafka-as-a-datahub-exercises-skeleton.iml" filepath="$PROJECT_DIR$/.idea/kafka-as-a-datahub-exercises-skeleton.iml" />
-      <module fileurl="file://$PROJECT_DIR$/kafka-stream/kafka-streams-solution.iml" filepath="$PROJECT_DIR$/kafka-stream/kafka-streams-solution.iml" />
     </modules>
   </component>
 </project>

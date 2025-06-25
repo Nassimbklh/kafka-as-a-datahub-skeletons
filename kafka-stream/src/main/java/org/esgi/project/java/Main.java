@@ -15,9 +15,10 @@ public class Main {
         StreamProcessing streamProcessing = new StreamProcessing();
         try (KafkaStreams streams = new KafkaStreams(streamProcessing.buildTopology(), buildProperties())) {
 
-            streams.setUncaughtExceptionHandler((Thread thread, Throwable throwable) -> {
+            streams.setUncaughtExceptionHandler((Throwable throwable) -> {
                 streams.close();
                 streams.cleanUp();
+                return null;
             });
 
             streams.start();
