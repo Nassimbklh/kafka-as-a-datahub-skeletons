@@ -1,20 +1,25 @@
 package org.esgi.project.api
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.stream.Materializer
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import org.apache.kafka.streams.{KafkaStreams, StoreQueryParameters}
 import org.apache.kafka.streams.state.{QueryableStoreTypes, ReadOnlyKeyValueStore}
 import org.esgi.project.streaming.StreamProcessing
 
 import scala.jdk.CollectionConverters._
+import scala.concurrent.{ExecutionContext, Future}
 import org.esgi.project.api.models._
 import org.esgi.project.streaming.models.MovieStats
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import java.io.InputStream
 
 object WebServer extends PlayJsonSupport {
-  def routes(streams: KafkaStreams): Route = {
+  def routes(streams: KafkaStreams)(implicit system: ActorSystem, mat: Materializer, ec: ExecutionContext): Route = {
+    // Initialize TMDB client
+    val tmdbClient = new TMDBClient()
 
     concat(
       pathEndOrSingleSlash {
@@ -49,7 +54,16 @@ object WebServer extends PlayJsonSupport {
           )
           val result = Option(store.get(id))
           result match {
-            case Some(stats) => complete(stats)
+            case Some(stats) => 
+              // Fetch TMDB data for the movie
+              val tmdbFuture = tmdbClient.searchMovie(stats.title)
+
+              // Combine MovieStats with TMDB data
+              val enrichedStatsFuture = tmdbFuture.map { tmdbMovie =>
+                EnrichedMovieStats(stats, tmdbMovie)
+              }
+
+              complete(enrichedStatsFuture)
             case None => complete(s"Movie with id $id not found")
           }
         }

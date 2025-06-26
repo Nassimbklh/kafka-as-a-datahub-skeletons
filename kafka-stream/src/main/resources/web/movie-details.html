@@ -63,13 +63,13 @@
 <body>
     <div class="container">
         <h1>IABDFlix Movie Details</h1>
-        
+
         <div class="card" id="movie-details">
             <div id="movie-details-content">
                 <p class="error-message">Loading movie details...</p>
             </div>
         </div>
-        
+
         <a href="/" class="back-button">Back to Dashboard</a>
     </div>
 
@@ -85,7 +85,7 @@
         // Function to fetch movie details
         async function fetchMovieDetails() {
             const movieId = getUrlParameter('id');
-            
+
             if (!movieId) {
                 document.getElementById('movie-details-content').innerHTML = 
                     '<p class="error-message">No movie ID provided. Please go back and select a movie.</p>';
@@ -104,10 +104,21 @@
                 } else {
                     // Movie data
                     let html = `
-                        <h2>${data.title}</h2>
-                        <p><strong>ID:</strong> ${data.id}</p>
-                        <p><strong>Total Views:</strong> ${data.totalViewCount}</p>
-                        <p><strong>Average Score:</strong> ${data.averageScore.toFixed(2)}</p>
+                        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                            <div style="flex: 0 0 auto;">
+                                ${data.poster_path ? 
+                                    `<img src="https://image.tmdb.org/t/p/w300/${data.poster_path}" alt="${data.title}" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">` : 
+                                    '<div style="width: 200px; height: 300px; background-color: #eee; display: flex; align-items: center; justify-content: center; border-radius: 8px;">No poster available</div>'}
+                            </div>
+                            <div style="flex: 1;">
+                                <h2>${data.title}</h2>
+                                ${data.overview ? `<p style="margin-bottom: 20px;">${data.overview}</p>` : ''}
+                                <p><strong>ID:</strong> ${data.id}</p>
+                                <p><strong>Total Views:</strong> ${data.totalViewCount}</p>
+                                <p><strong>Average Score:</strong> ${data.averageScore.toFixed(2)}</p>
+                                ${data.tmdbId ? `<p><strong>TMDB ID:</strong> ${data.tmdbId}</p>` : ''}
+                            </div>
+                        </div>
 
                         <h3>Views by Category</h3>
                         <table>
