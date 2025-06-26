@@ -23,7 +23,7 @@ object StreamProcessing extends PlayJsonSupport {
   val movieStatsStoreName = "movie-stats-store"
 
   implicit val likeSerde: Serde[LikeEvent] = toSerde[LikeEvent]
-  implicit val metricSerde: Serde[ViewEvent] = toSerde[ViewEvent]
+  implicit val viewSerde: Serde[ViewEvent] = toSerde[ViewEvent]
   implicit val movieStatsSerde: Serde[MovieStats] = toSerde[MovieStats]
 
 
@@ -41,13 +41,18 @@ object StreamProcessing extends PlayJsonSupport {
 
   // 2. Vues cumulées par film et par catégorie (past)
   private val viewByCategory: KTable[(Int, String), Long] = views
-    .map((_, view) => ((view.id, view.viewCategory), 1L))
+    .map((_, view) => ((view.id, view.view_category), 1L))
     .groupByKey
     .count()
+  private val viewCountsByMovieId: KTable[Int, Map[String, Long]] = viewByCategory
+    .toStream
+    .map((k, v) => (k._1, Map(k._2 -> v))) // (movieId, Map(category -> count))
+    .groupByKey
+    .reduce((m1, m2) => m1 ++ m2)
 
   // 3. Vues sur les 5 dernières minutes
   private val last5MinWindowed: KTable[Windowed[(Int, String)], Long] = views
-    .map((_, view) => ((view.id, view.viewCategory), 1L))
+    .map((_, view) => ((view.id, view.view_category), 1L))
     .groupByKey
     .windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofMinutes(5)))
     .count()
@@ -63,26 +68,30 @@ object StreamProcessing extends PlayJsonSupport {
     .reduce((m1, m2) => m1 ++ m2)
 
   // 4. Moyenne des scores par film
-  private val likeScores: KTable[Int, (Double, Long)] = builder
-    .stream[String, LikeEvent](likesTopicName)
+  private val likeScores: KTable[Int, (Double, Long)] = likes
     .map((_, like) => (like.id, like.score))
     .groupByKey
-    .aggregate((0.0, 0L))(
-      (_, score, acc) => (acc._1 + score, acc._2 + 1)
-    )
+    .aggregate((0.0, 0L)) {
+      case (_, score, (sum, count)) => (sum + score, count + 1)
+    }
 
   // 5. Agrégation finale dans MovieStats
   val movieStats: KTable[Int, MovieStats] = titleTable
-    .leftJoin(viewByCategory.groupBy((k, v) => (k._1, Map(k._2 -> v)))) {
+    .leftJoin(viewCountsByMovieId) {
       (title: String, categoryMap: Map[String, Long]) =>
         (title, categoryMap)
     }
-    .leftJoin(last5MinViews) {
-      case ((title: String, pastViews: Map[String, Long]), recentViews: Map[String, Long]) =>
-        (title, pastViews, recentViews)
-    }
+    .leftJoin(last5MinViews)((titleAndPastViews, lastViews) => {
+      val (title, pastViews) = titleAndPastViews
+      val safeLastViews = Option(lastViews).getOrElse(Map.empty[String, Long])
+      (title, pastViews, safeLastViews)
+    })
     .leftJoin(likeScores) {
-      case ((title: String, pastViews: Map[String, Long], lastViews: Map[String, Long]), Some((sum, count))) =>
+      case ((title, rawPastViews, rawLastViews), likeData) =>
+        val pastViews = Option(rawPastViews).getOrElse(Map.empty[String, Long])
+        val lastViews = Option(rawLastViews).getOrElse(Map.empty[String, Long])
+        val (sum, count) = Option(likeData).getOrElse((0.0, 0L))
+
         MovieStats(
           id = 0,
           title = title,
@@ -91,17 +100,10 @@ object StreamProcessing extends PlayJsonSupport {
           lastFiveMinViews = lastViews,
           averageScore = if (count > 0) sum / count else 0.0
         )
-      case ((title, pastViews: Map[String, Long], lastViews: Map[String, Long]), None) =>
-        MovieStats(
-          id = 0,
-          title = title,
-          totalViewCount = pastViews.values.sum,
-          pastViews = pastViews,
-          lastFiveMinViews = lastViews,
-          averageScore = 0.0
-        )
     }
-    .mapValuesWithKey((id: Int, stats: MovieStats) => stats.copy(id = id))
+    .toStream
+    .map((movieId, stats) => (movieId, stats.copy(id = movieId)))
+    .toTable(Materialized.as[Int, MovieStats, ByteArrayKeyValueStore](movieStatsStoreName)(intSerde, movieStatsSerde))
 
 
 

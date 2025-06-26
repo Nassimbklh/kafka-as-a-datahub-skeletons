@@ -5,7 +5,7 @@ import play.api.libs.json.{Json, OFormat}
 case class ViewEvent(
                       id: Int,
                       title: String,
-                      viewCategory: String
+                      view_category: String
                     )
 
 object ViewEvent {
