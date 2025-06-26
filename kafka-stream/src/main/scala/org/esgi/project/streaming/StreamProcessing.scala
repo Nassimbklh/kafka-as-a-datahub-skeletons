@@ -3,9 +3,13 @@ package org.esgi.project.streaming
 import io.github.azhur.kafka.serde.PlayJsonSupport
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.scala._
-import org.apache.kafka.streams.scala.kstream.{KTable, Materialized}
+import org.apache.kafka.streams.scala.kstream._
 import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
+
+import models.{LikeEvent, ViewEvent, MovieStats}
+import models.ViewEvent
 
 import java.util.Properties
 
@@ -14,17 +18,22 @@ object StreamProcessing extends PlayJsonSupport {
   import org.apache.kafka.streams.scala.ImplicitConversions._
   import org.apache.kafka.streams.scala.serialization.Serdes._
 
-  val applicationName = s"some-application-name"
+  val applicationName = s"IABDFlix"
 
-  private val props: Properties = buildProperties
+  val likesTopicName: String = "likes"
+  val viewsTopicName: String = "views"
+
+  implicit val likeSerde: Serde[LikeEvent] = toSerde[LikeEvent]
+  implicit val metricSerde: Serde[ViewEvent] = toSerde[ViewEvent]
+
+  val builder: StreamsBuilder = new StreamsBuilder
+
+  // topic sources
+  val visits: KStream[String, LikeEvent] = builder.stream[String, LikeEvent](likesTopicName)
+  val metrics: KStream[String, ViewEvent] = builder.stream[String, ViewEvent](viewsTopicName)
 
   // defining processing graph
   val builder: StreamsBuilder = new StreamsBuilder
-
-  val wordTopic = "words"
-  val wordCountStoreName = "word-count-store"
-
-  val words = builder.stream[String, String](wordTopic)
 
   val wordCounts: KTable[String, Long] = words
     .flatMapValues(textLine => textLine.toLowerCase.split("\\W+"))
