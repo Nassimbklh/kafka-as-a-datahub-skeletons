@@ -10,11 +10,24 @@ import org.esgi.project.streaming.StreamProcessing
 import scala.jdk.CollectionConverters._
 import org.esgi.project.api.models._
 import org.esgi.project.streaming.models.MovieStats
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
+import java.io.InputStream
 
 object WebServer extends PlayJsonSupport {
   def routes(streams: KafkaStreams): Route = {
 
     concat(
+      pathEndOrSingleSlash {
+        get {
+          val inputStream = getClass.getClassLoader.getResourceAsStream("web/index.html")
+          if (inputStream != null) {
+            val html = scala.io.Source.fromInputStream(inputStream).mkString
+            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, html))
+          } else {
+            complete("HTML file not found")
+          }
+        }
+      },
       path("movies"/ IntNumber) { id =>
         get {
           val store = streams.store(

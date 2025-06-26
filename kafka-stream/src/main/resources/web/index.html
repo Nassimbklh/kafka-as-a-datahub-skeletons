@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IABDFlix Movie Statistics</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #e50914;
+            text-align: center;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .refresh-info {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+        .movie-search {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+        .movie-search input {
+            padding: 8px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .movie-search button {
+            padding: 8px 16px;
+            background-color: #e50914;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IABDFlix Movie Statistics</h1>
+        
+        <div class="movie-search">
+            <input type="number" id="movie-id" placeholder="Enter movie ID">
+            <button onclick="getMovieStats()">Get Movie Stats</button>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2>Top 10 Movies by Score</h2>
+                <table id="best-score-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h2>Top 10 Movies by Views</h2>
+                <table id="best-views-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Views</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h2>Worst 10 Movies by Score</h2>
+                <table id="worst-score-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h2>Worst 10 Movies by Views</h2>
+                <table id="worst-views-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Views</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card" id="movie-details" style="display: none; margin-top: 20px;">
+            <h2>Movie Details</h2>
+            <div id="movie-details-content"></div>
+        </div>
+        
+        <p class="refresh-info">Data refreshes automatically every 5 seconds</p>
+    </div>
+
+    <script>
+        // Function to fetch data from the API
+        async function fetchData(endpoint) {
+            try {
+                const response = await fetch(endpoint);
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching data from ${endpoint}:`, error);
+                return [];
+            }
+        }
+
+        // Function to populate a table with data
+        function populateTable(tableId, data, columns) {
+            const tableBody = document.querySelector(`#${tableId} tbody`);
+            tableBody.innerHTML = '';
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                columns.forEach(column => {
+                    const cell = document.createElement('td');
+                    cell.textContent = item[column];
+                    row.appendChild(cell);
+                });
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Function to get stats for a specific movie
+        async function getMovieStats() {
+            const movieId = document.getElementById('movie-id').value;
+            if (!movieId) {
+                alert('Please enter a movie ID');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/movies/${movieId}`);
+                const data = await response.json();
+                
+                const detailsDiv = document.getElementById('movie-details');
+                const contentDiv = document.getElementById('movie-details-content');
+                
+                if (typeof data === 'string') {
+                    // Error message
+                    contentDiv.innerHTML = `<p>${data}</p>`;
+                } else {
+                    // Movie data
+                    let html = `
+                        <p><strong>ID:</strong> ${data.id}</p>
+                        <p><strong>Title:</strong> ${data.title}</p>
+                        <p><strong>Total Views:</strong> ${data.totalViewCount}</p>
+                        <p><strong>Average Score:</strong> ${data.averageScore.toFixed(2)}</p>
+                        
+                        <h3>Views by Category</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    for (const [category, count] of Object.entries(data.pastViews)) {
+                        html += `
+                            <tr>
+                                <td>${category}</td>
+                                <td>${count}</td>
+                            </tr>
+                        `;
+                    }
+                    
+                    html += `
+                            </tbody>
+                        </table>
+                        
+                        <h3>Last 5 Minutes Views</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    for (const [category, count] of Object.entries(data.lastFiveMinViews)) {
+                        html += `
+                            <tr>
+                                <td>${category}</td>
+                                <td>${count}</td>
+                            </tr>
+                        `;
+                    }
+                    
+                    html += `
+                            </tbody>
+                        </table>
+                    `;
+                    
+                    contentDiv.innerHTML = html;
+                }
+                
+                detailsDiv.style.display = 'block';
+            } catch (error) {
+                console.error('Error fetching movie stats:', error);
+                alert('Error fetching movie stats. Please try again.');
+            }
+        }
+
+        // Function to update all data
+        async function updateAllData() {
+            const bestScoreData = await fetchData('/stats/ten/best/score');
+            populateTable('best-score-table', bestScoreData, ['id', 'title', 'averageScore']);
+            
+            const bestViewsData = await fetchData('/stats/ten/best/views');
+            populateTable('best-views-table', bestViewsData, ['id', 'title', 'totalViewCount']);
+            
+            const worstScoreData = await fetchData('/stats/ten/worst/score');
+            populateTable('worst-score-table', worstScoreData, ['id', 'title', 'averageScore']);
+            
+            const worstViewsData = await fetchData('/stats/ten/worst/views');
+            populateTable('worst-views-table', worstViewsData, ['id', 'title', 'totalViewCount']);
+        }
+
+        // Initial data load
+        updateAllData();
+        
+        // Set up automatic refresh every 5 seconds
+        setInterval(updateAllData, 5000);
+    </script>
+</body>
+</html>
