@@ -79,12 +79,12 @@
 <body>
     <div class="container">
         <h1>IABDFlix Movie Statistics</h1>
-        
+
         <div class="movie-search">
             <input type="number" id="movie-id" placeholder="Enter movie ID">
             <button onclick="getMovieStats()">Get Movie Stats</button>
         </div>
-        
+
         <div class="dashboard">
             <div class="card">
                 <h2>Top 10 Movies by Score</h2>
@@ -101,7 +101,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="card">
                 <h2>Top 10 Movies by Views</h2>
                 <table id="best-views-table">
@@ -117,7 +117,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="card">
                 <h2>Worst 10 Movies by Score</h2>
                 <table id="worst-score-table">
@@ -133,7 +133,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="card">
                 <h2>Worst 10 Movies by Views</h2>
                 <table id="worst-views-table">
@@ -150,12 +150,12 @@
                 </table>
             </div>
         </div>
-        
+
         <div class="card" id="movie-details" style="display: none; margin-top: 20px;">
             <h2>Movie Details</h2>
             <div id="movie-details-content"></div>
         </div>
-        
+
         <p class="refresh-info">Data refreshes automatically every 5 seconds</p>
     </div>
 
@@ -175,7 +175,7 @@
         function populateTable(tableId, data, columns) {
             const tableBody = document.querySelector(`#${tableId} tbody`);
             tableBody.innerHTML = '';
-            
+
             data.forEach(item => {
                 const row = document.createElement('tr');
                 columns.forEach(column => {
@@ -194,14 +194,21 @@
                 alert('Please enter a movie ID');
                 return;
             }
-            
+
+            // Validate that movieId is a valid integer
+            if (!/^\d+$/.test(movieId)) {
+                alert('Please enter a valid integer movie ID');
+                return;
+            }
+            const movieIdInt = parseInt(movieId, 10);
+
             try {
-                const response = await fetch(`/movies/${movieId}`);
+                const response = await fetch(`/movies/${movieIdInt}`);
                 const data = await response.json();
-                
+
                 const detailsDiv = document.getElementById('movie-details');
                 const contentDiv = document.getElementById('movie-details-content');
-                
+
                 if (typeof data === 'string') {
                     // Error message
                     contentDiv.innerHTML = `<p>${data}</p>`;
@@ -212,7 +219,7 @@
                         <p><strong>Title:</strong> ${data.title}</p>
                         <p><strong>Total Views:</strong> ${data.totalViewCount}</p>
                         <p><strong>Average Score:</strong> ${data.averageScore.toFixed(2)}</p>
-                        
+
                         <h3>Views by Category</h3>
                         <table>
                             <thead>
@@ -223,7 +230,7 @@
                             </thead>
                             <tbody>
                     `;
-                    
+
                     for (const [category, count] of Object.entries(data.pastViews)) {
                         html += `
                             <tr>
@@ -232,11 +239,11 @@
                             </tr>
                         `;
                     }
-                    
+
                     html += `
                             </tbody>
                         </table>
-                        
+
                         <h3>Last 5 Minutes Views</h3>
                         <table>
                             <thead>
@@ -247,7 +254,7 @@
                             </thead>
                             <tbody>
                     `;
-                    
+
                     for (const [category, count] of Object.entries(data.lastFiveMinViews)) {
                         html += `
                             <tr>
@@ -256,15 +263,15 @@
                             </tr>
                         `;
                     }
-                    
+
                     html += `
                             </tbody>
                         </table>
                     `;
-                    
+
                     contentDiv.innerHTML = html;
                 }
-                
+
                 detailsDiv.style.display = 'block';
             } catch (error) {
                 console.error('Error fetching movie stats:', error);
@@ -276,20 +283,20 @@
         async function updateAllData() {
             const bestScoreData = await fetchData('/stats/ten/best/score');
             populateTable('best-score-table', bestScoreData, ['id', 'title', 'averageScore']);
-            
+
             const bestViewsData = await fetchData('/stats/ten/best/views');
             populateTable('best-views-table', bestViewsData, ['id', 'title', 'totalViewCount']);
-            
+
             const worstScoreData = await fetchData('/stats/ten/worst/score');
             populateTable('worst-score-table', worstScoreData, ['id', 'title', 'averageScore']);
-            
+
             const worstViewsData = await fetchData('/stats/ten/worst/views');
             populateTable('worst-views-table', worstViewsData, ['id', 'title', 'totalViewCount']);
         }
 
         // Initial data load
         updateAllData();
-        
+
         // Set up automatic refresh every 5 seconds
         setInterval(updateAllData, 5000);
     </script>
