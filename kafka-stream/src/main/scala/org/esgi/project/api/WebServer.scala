@@ -28,6 +28,17 @@ object WebServer extends PlayJsonSupport {
           }
         }
       },
+      path("movie-details") {
+        get {
+          val inputStream = getClass.getClassLoader.getResourceAsStream("web/movie-details.html")
+          if (inputStream != null) {
+            val html = scala.io.Source.fromInputStream(inputStream).mkString
+            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, html))
+          } else {
+            complete("Movie details HTML file not found")
+          }
+        }
+      },
       path("movies"/ IntNumber) { id =>
         get {
           val store = streams.store(

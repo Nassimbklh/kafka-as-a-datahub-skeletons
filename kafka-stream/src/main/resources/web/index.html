@@ -74,6 +74,16 @@
             margin-left: 8px;
             cursor: pointer;
         }
+        .table-info {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        tbody tr:hover {
+            background-color: #f0f0f0;
+        }
     </style>
 </head>
 <body>
@@ -100,6 +110,7 @@
                         <!-- Data will be populated by JavaScript -->
                     </tbody>
                 </table>
+                <div class="table-info">Click on a movie to see details</div>
             </div>
 
             <div class="card">
@@ -116,6 +127,7 @@
                         <!-- Data will be populated by JavaScript -->
                     </tbody>
                 </table>
+                <div class="table-info">Click on a movie to see details</div>
             </div>
 
             <div class="card">
@@ -132,6 +144,7 @@
                         <!-- Data will be populated by JavaScript -->
                     </tbody>
                 </table>
+                <div class="table-info">Click on a movie to see details</div>
             </div>
 
             <div class="card">
@@ -148,13 +161,10 @@
                         <!-- Data will be populated by JavaScript -->
                     </tbody>
                 </table>
+                <div class="table-info">Click on a movie to see details</div>
             </div>
         </div>
 
-        <div class="card" id="movie-details" style="display: none; margin-top: 20px;">
-            <h2>Movie Details</h2>
-            <div id="movie-details-content"></div>
-        </div>
 
         <p class="refresh-info">Data refreshes automatically every 5 seconds</p>
     </div>
@@ -178,6 +188,11 @@
 
             data.forEach(item => {
                 const row = document.createElement('tr');
+                row.style.cursor = 'pointer';
+                row.onclick = function() {
+                    window.location.href = `/movie-details?id=${item.id}`;
+                };
+
                 columns.forEach(column => {
                     const cell = document.createElement('td');
                     cell.textContent = item[column];
@@ -187,8 +202,8 @@
             });
         }
 
-        // Function to get stats for a specific movie
-        async function getMovieStats() {
+        // Function to redirect to movie details page
+        function getMovieStats() {
             const movieId = document.getElementById('movie-id').value;
             if (!movieId) {
                 alert('Please enter a movie ID');
@@ -202,81 +217,8 @@
             }
             const movieIdInt = parseInt(movieId, 10);
 
-            try {
-                const response = await fetch(`/movies/${movieIdInt}`);
-                const data = await response.json();
-
-                const detailsDiv = document.getElementById('movie-details');
-                const contentDiv = document.getElementById('movie-details-content');
-
-                if (typeof data === 'string') {
-                    // Error message
-                    contentDiv.innerHTML = `<p>${data}</p>`;
-                } else {
-                    // Movie data
-                    let html = `
-                        <p><strong>ID:</strong> ${data.id}</p>
-                        <p><strong>Title:</strong> ${data.title}</p>
-                        <p><strong>Total Views:</strong> ${data.totalViewCount}</p>
-                        <p><strong>Average Score:</strong> ${data.averageScore.toFixed(2)}</p>
-
-                        <h3>Views by Category</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Category</th>
-                                    <th>Count</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-
-                    for (const [category, count] of Object.entries(data.pastViews)) {
-                        html += `
-                            <tr>
-                                <td>${category}</td>
-                                <td>${count}</td>
-                            </tr>
-                        `;
-                    }
-
-                    html += `
-                            </tbody>
-                        </table>
-
-                        <h3>Last 5 Minutes Views</h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Category</th>
-                                    <th>Count</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-
-                    for (const [category, count] of Object.entries(data.lastFiveMinViews)) {
-                        html += `
-                            <tr>
-                                <td>${category}</td>
-                                <td>${count}</td>
-                            </tr>
-                        `;
-                    }
-
-                    html += `
-                            </tbody>
-                        </table>
-                    `;
-
-                    contentDiv.innerHTML = html;
-                }
-
-                detailsDiv.style.display = 'block';
-            } catch (error) {
-                console.error('Error fetching movie stats:', error);
-                alert('Error fetching movie stats. Please try again.');
-            }
+            // Redirect to movie details page
+            window.location.href = `/movie-details?id=${movieIdInt}`;
         }
 
         // Function to update all data
