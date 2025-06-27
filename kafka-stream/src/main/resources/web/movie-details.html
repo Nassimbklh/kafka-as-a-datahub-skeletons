@@ -66,15 +66,15 @@
 
         <div class="card" id="movie-details">
             <div id="movie-details-content">
-                <p class="error-message">Loading movie details...</p>
+                <p class="error-message">Chargement des détails du film...</p>
             </div>
         </div>
 
-        <a href="/" class="back-button">Back to Dashboard</a>
+        <a href="/" class="back-button">Retour au Tableau de Bord</a>
     </div>
 
     <script>
-        // Function to get URL parameters
+        // Fonction pour obtenir les paramètres d'URL
         function getUrlParameter(name) {
             name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
             var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
@@ -82,13 +82,13 @@
             return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         }
 
-        // Function to fetch movie details
+        // Fonction pour récupérer les détails du film
         async function fetchMovieDetails() {
             const movieId = getUrlParameter('id');
 
             if (!movieId) {
                 document.getElementById('movie-details-content').innerHTML = 
-                    '<p class="error-message">No movie ID provided. Please go back and select a movie.</p>';
+                    '<p class="error-message">Aucun ID de film fourni. Veuillez revenir en arrière et sélectionner un film.</p>';
                 return;
             }
 
@@ -99,33 +99,33 @@
                 const contentDiv = document.getElementById('movie-details-content');
 
                 if (typeof data === 'string') {
-                    // Error message
+                    // Message d'erreur
                     contentDiv.innerHTML = `<p class="error-message">${data}</p>`;
                 } else {
-                    // Movie data
+                    // Données du film
                     let html = `
                         <div style="display: flex; gap: 20px; margin-bottom: 20px;">
                             <div style="flex: 0 0 auto;">
                                 ${data.poster_path ? 
                                     `<img src="https://image.tmdb.org/t/p/w300/${data.poster_path}" alt="${data.title}" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">` : 
-                                    '<div style="width: 200px; height: 300px; background-color: #eee; display: flex; align-items: center; justify-content: center; border-radius: 8px;">No poster available</div>'}
+                                    '<div style="width: 200px; height: 300px; background-color: #eee; display: flex; align-items: center; justify-content: center; border-radius: 8px;">Aucune affiche disponible</div>'}
                             </div>
                             <div style="flex: 1;">
                                 <h2>${data.title}</h2>
                                 ${data.overview ? `<p style="margin-bottom: 20px;">${data.overview}</p>` : ''}
                                 <p><strong>ID:</strong> ${data.id}</p>
-                                <p><strong>Total Views:</strong> ${data.totalViewCount}</p>
-                                <p><strong>Average Score:</strong> ${data.averageScore.toFixed(2)}</p>
+                                <p><strong>Vues Totales:</strong> ${data.totalViewCount}</p>
+                                <p><strong>Score Moyen:</strong> ${data.averageScore.toFixed(2)}</p>
                                 ${data.tmdbId ? `<p><strong>TMDB ID:</strong> ${data.tmdbId}</p>` : ''}
                             </div>
                         </div>
 
-                        <h3>Views by Category</h3>
+                        <h3>Vues par Catégorie</h3>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Category</th>
-                                    <th>Count</th>
+                                    <th>Catégorie</th>
+                                    <th>Nombre</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -144,12 +144,12 @@
                             </tbody>
                         </table>
 
-                        <h3>Last 5 Minutes Views</h3>
+                        <h3>Vues des 5 Dernières Minutes</h3>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Category</th>
-                                    <th>Count</th>
+                                    <th>Catégorie</th>
+                                    <th>Nombre</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -173,13 +173,13 @@
                     document.title = `IABDFlix - ${data.title}`;
                 }
             } catch (error) {
-                console.error('Error fetching movie stats:', error);
+                console.error('Erreur lors de la récupération des statistiques du film:', error);
                 document.getElementById('movie-details-content').innerHTML = 
-                    '<p class="error-message">Error fetching movie details. Please try again.</p>';
+                    '<p class="error-message">Erreur lors de la récupération des détails du film. Veuillez réessayer.</p>';
             }
         }
 
-        // Load movie details when page loads
+        // Charger les détails du film au chargement de la page
         window.onload = fetchMovieDetails;
     </script>
 </body>

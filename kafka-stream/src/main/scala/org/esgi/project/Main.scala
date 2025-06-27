@@ -24,6 +24,6 @@ object Main extends KafkaConfig {
     Http()
       .newServerAt("0.0.0.0", 8080)
       .bindFlow(WebServer.routes(streams)(system, materializer, executionContext))
-    logger.info(s"App started on 8080")
+    logger.info(s"Application démarrée sur le port 8080")
   }
 }

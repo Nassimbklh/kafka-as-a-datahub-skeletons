@@ -107,10 +107,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Data will be populated by JavaScript -->
+                        <!-- Les données seront remplies par JavaScript -->
                     </tbody>
                 </table>
-                <div class="table-info">Click on a movie to see details</div>
+                <div class="table-info">Cliquez sur un film pour voir les détails</div>
             </div>
 
             <div class="card">
@@ -124,10 +124,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Data will be populated by JavaScript -->
+                        <!-- Les données seront remplies par JavaScript -->
                     </tbody>
                 </table>
-                <div class="table-info">Click on a movie to see details</div>
+                <div class="table-info">Cliquez sur un film pour voir les détails</div>
             </div>
 
             <div class="card">
@@ -141,10 +141,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Data will be populated by JavaScript -->
+                        <!-- Les données seront remplies par JavaScript -->
                     </tbody>
                 </table>
-                <div class="table-info">Click on a movie to see details</div>
+                <div class="table-info">Cliquez sur un film pour voir les détails</div>
             </div>
 
             <div class="card">
@@ -158,19 +158,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Data will be populated by JavaScript -->
+                        <!-- Les données seront remplies par JavaScript -->
                     </tbody>
                 </table>
-                <div class="table-info">Click on a movie to see details</div>
+                <div class="table-info">Cliquez sur un film pour voir les détails</div>
             </div>
         </div>
 
 
-        <p class="refresh-info">Data refreshes automatically every 5 seconds</p>
+        <p class="refresh-info">Les données se rafraîchissent automatiquement toutes les 5 secondes</p>
     </div>
 
     <script>
-        // Function to fetch data from the API
+        // Fonction pour récupérer les données de l'API
         async function fetchData(endpoint) {
             try {
                 const response = await fetch(endpoint);
@@ -181,7 +181,7 @@
             }
         }
 
-        // Function to populate a table with data
+        // Fonction pour remplir un tableau avec des données
         function populateTable(tableId, data, columns) {
             const tableBody = document.querySelector(`#${tableId} tbody`);
             tableBody.innerHTML = '';
@@ -202,26 +202,26 @@
             });
         }
 
-        // Function to redirect to movie details page
+        // Fonction pour rediriger vers la page de détails du film
         function getMovieStats() {
             const movieId = document.getElementById('movie-id').value;
             if (!movieId) {
-                alert('Please enter a movie ID');
+                alert('Veuillez entrer un ID de film');
                 return;
             }
 
-            // Validate that movieId is a valid integer
+            // Vérifier que movieId est un entier valide
             if (!/^\d+$/.test(movieId)) {
-                alert('Please enter a valid integer movie ID');
+                alert('Veuillez entrer un ID de film entier valide');
                 return;
             }
             const movieIdInt = parseInt(movieId, 10);
 
-            // Redirect to movie details page
+            // Rediriger vers la page de détails du film
             window.location.href = `/movie-details?id=${movieIdInt}`;
         }
 
-        // Function to update all data
+        // Fonction pour mettre à jour toutes les données
         async function updateAllData() {
             const bestScoreData = await fetchData('/stats/ten/best/score');
             populateTable('best-score-table', bestScoreData, ['id', 'title', 'averageScore']);
@@ -236,10 +236,10 @@
             populateTable('worst-views-table', worstViewsData, ['id', 'title', 'totalViewCount']);
         }
 
-        // Initial data load
+        // Chargement initial des données
         updateAllData();
 
-        // Set up automatic refresh every 5 seconds
+        // Configuration du rafraîchissement automatique toutes les 5 secondes
         setInterval(updateAllData, 5000);
     </script>
 </body>
